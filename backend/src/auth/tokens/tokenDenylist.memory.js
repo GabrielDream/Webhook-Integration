@@ -1,0 +1,132 @@
+// ==================================================
+// SIMPLE IN-MEMORY DENYLIST FOR JWTs (KEYED BY JTI)
+// ==================================================
+// Objetivo: revogar tokens JWT até sua expiração natural.
+// Uso: no endpoint /logout para invalidar tokens antes do exp.
+// Observação: implementação em memória (volátil).
+// Em produção com múltiplos servidores, use Redis ou DB.
+// ==================================================
+
+// 🗃️ PASSO 1: STORE PRINCIPAL - Onde os tokens revogados ficam
+// ==================================================
+// Map vs Object: Map é melhor porque:
+// - Chaves podem ser qualquer tipo (jtis são strings)
+// - Performance O(1) para operações .has() frequentes
+// - Mantém ordem de inserção (não crucial, mas útil)
+const store = new Map();
+
+// ⏰ PASSO 2: MAP DE TIMERS - Para gerenciar limpeza automática
+// ==================================================
+// Por que separar os timers?
+// - Evita memory leaks (timers órfãos)
+// - Cancela timers antigos em revogações múltiplas
+// - Facilita cleanup completo nos testes
+const timers = new Map();
+
+// 🛡️ PASSO 3: LIMITE DE SEGURANÇA PARA setTimeout
+// ==================================================
+// setTimeout tem limite máximo de ~24.8 dias (2^31-1 ms)
+// TTLs maiores causariam overflow e executariam IMEDIATAMENTE
+const MAX_DELAY_MS = 0x7fffffff; // 2,147,483,647 ms
+
+export const tokenDenylist = {
+	// ==================================================
+	// ✅ VERIFICA SE UM TOKEN ESTÁ REVOGADO
+	// ==================================================
+	// USO: no middleware de autenticação antes de aceitar token
+	// EXEMPLO: if (await tokenDenylist.isRevoked(decoded.jti)) blockAccess()
+	// PERFORMANCE: Map.has() é O(1)
+	isRevoked: async function (jti) {
+		return store.has(jti);
+	},
+
+	// ==================================================
+	// 🔐 REVOGA UM TOKEN ATÉ SUA EXPIRAÇÃO NATURAL
+	// ==================================================
+	// FLUXO:
+	// 1. Valida entrada
+	// 2. Adiciona à lista negra (imediato)
+	// 3. Cancela timer anterior (se existir)
+	// 4. Agenda remoção automática (quando expirar)
+	// 5. Libera timer para não travar shutdown
+	revoke: async function (jti, remainingLifetimeSec) {
+		// 🚨 VALIDAÇÃO CRÍTICA - SÓ INTEIROS ≥ 1 SEGUNDO
+		if (
+			typeof remainingLifetimeSec !== 'number' ||
+			!Number.isFinite(remainingLifetimeSec) ||
+			!Number.isInteger(remainingLifetimeSec) ||
+			remainingLifetimeSec < 1
+		) {
+			throw new Error(
+				'remainingLifetimeSec must be an INTEGER of at least 1 second. ' +
+					'Examples: 60 (1 minute), 3600 (1 hour). ' +
+					'Received: ' +
+					remainingLifetimeSec
+			);
+		}
+		// 🎯 PRIORIDADE 1: SEGURANÇA DO USUÁRIO
+		// ✅ REVOGAÇÃO IMEDIATA -- IMPORTANTISSIMO VIR PRIMEIRO
+		store.set(jti, true);
+
+		// 🎯 PRIORIDADE 2: HEALTH DO SISTEMA
+		// 🔄 CANCELA TIMER ANTIGO (se existir)
+		// ==================================================
+		// 🐛 PROTEÇÃO CONTRA BUGS DE UI (90% DOS CASOS):
+		// - Usuário clica múltiplas vezes em "Sair" (impatiência/bug)
+		// - App mobile envia múltiplos requests (bug de rede)
+		// - Múltiplas abas fazendo logout simultâneo
+		//
+		// ⚠️ SEM ESTA PROTEÇÃO:
+		// Cada clique criaria um novo timer, e o PRIMEIRO timer
+		// removeria o token da denylist ANTES da hora!
+		//
+		// ✅ COM ESTA PROTEÇÃO:
+		// Só o timer MAIS RECENTE permanece ativo
+		// Token fica revogado pelo tempo EXATO que falta
+		// ==================================================
+		const oldTimer = timers.get(jti);
+		if (oldTimer) clearTimeout(oldTimer);
+
+		// 🗑️ AGENDAMENTO DE LIMPEZA (expiração natural)
+		let delay = remainingLifetimeSec * 1000;
+		if (delay > MAX_DELAY_MS) delay = MAX_DELAY_MS;
+
+		const t = setTimeout(function () {
+			store.delete(jti);
+			timers.delete(jti);
+		}, delay);
+
+		// 🔧 PERMITE SHUTDOWN LIMPO (Jest/Node)
+		if (t && typeof t.unref === 'function') {
+			t.unref();
+		}
+
+		// 💾 ARMAZENA TIMER PARA GERENCIAMENTO FUTURO
+		// ==================================================
+		// 📝 REGISTRO PARA PRÓXIMAS CHAMADAS:
+		// Salva o timer atual no Map para que a PRÓXIMA vez
+		// que esta função for chamada com o MESMO jti
+		// (seja por bug de UI ou qualquer motivo),
+		// possamos cancelá-lo e criar um novo timer atualizado
+		// ==================================================
+		timers.set(jti, t);
+	},
+
+	// ==================================================
+	// 🧪 HELPER PARA TESTES - LIMPEZA COMPLETA
+	// ==================================================
+	// USO: afterEach(async () => await tokenDenylist._clear())
+	// IMPORTANTE: método interno (não usar em produção)
+	/* ✅ ISSO FUNCIONA:
+	afterEach(async () => {
+			await tokenDenylist._clear(); // ← Chama o método INTERNO
+	});*/
+	_clear: async function () {
+		// 1. 🧹 CANCELA TODOS OS TIMERS ATIVOS
+		for (const t of timers.values()) clearTimeout(t);
+		timers.clear();
+
+		// 2. 🗑️ LIMPA TOKENS REVOGADOS
+		store.clear();
+	}
+};

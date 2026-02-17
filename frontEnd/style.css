@@ -1,0 +1,291 @@
+/* ===== Reset básico ===== */
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+/* ===== Base ===== */
+body {
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, sans-serif;
+	background-color: #0e1117;
+	color: #e6edf3;
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* ===== Container principal ===== */
+main {
+	background-color: #161b22;
+	padding: 32px;
+	border-radius: 12px;
+	width: 100%;
+	max-width: 420px;
+	box-shadow: 0 10px 30px rgba(146, 136, 193, 0.4);
+}
+
+/* ===== Títulos ===== */
+h1 {
+	font-size: 22px;
+	margin-bottom: 8px;
+}
+
+p {
+	font-size: 14px;
+	color: #8b949e;
+	margin-bottom: 24px;
+}
+
+/* ===== Form ===== */
+form {
+	display: flex;
+	flex-direction: column;
+}
+
+label {
+	font-size: 13px;
+	margin-bottom: 6px;
+	color: #c9d1d9;
+}
+
+input {
+	background-color: #0e1117;
+	border: 1px solid #30363d;
+	border-radius: 6px;
+	padding: 10px 12px;
+	color: #e6edf3;
+	font-size: 14px;
+	margin-bottom: 16px;
+}
+
+input:focus {
+	outline: none;
+	border-color: #58a6ff;
+}
+
+.form-group {
+	margin-bottom: 16px;
+}
+
+loginForm {
+	width: 100%;
+	max-width: 360px;
+	margin: 0 auto;
+}
+
+loginForm label {
+	display: block;
+}
+
+/* ===== Botão Login ===== */
+#LoginButton {
+	background-color: #238636;
+	border: none;
+	border-radius: 6px;
+	padding: 10px;
+	color: #ffffff;
+	font-size: 14px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: background-color 0.2s ease, transform 0.05s ease;
+}
+
+#LoginButton:hover {
+	background-color: #2ea043;
+}
+
+#LoginButton:active {
+	transform: scale(0.97);
+	background-color: #1f7a32;
+}
+
+#LoginButton:focus-visible {
+	outline: 2px solid #58a6ff;
+	outline-offset: 2px;
+}
+
+.loginMessage {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #e74c3c;
+}
+
+.hidden {
+  display: none;
+}
+
+/* ===== Link secundário ===== */
+a {
+	margin-top: 16px;
+	text-align: center;
+	font-size: 13px;
+	color: #58a6ff;
+	text-decoration: none;
+}
+
+a:hover {
+	text-decoration: underline;
+}
+
+#RegisterButton {
+	margin-top: 18px;
+	text-align: center;
+}
+
+.registerForm {
+	width: 100%;
+	max-width: 360px;
+	margin: 0 auto;
+}
+
+.registerForm label {
+	display: block;
+}
+
+#RegisterButton a {
+	display: inline-block;
+	padding: 10px 14px;
+	border-radius: 6px;
+	border: 1px solid #30363d;
+	background-color: transparent;
+	color: #c9d1d9;
+	font-size: 13px;
+	font-weight: 500;
+	text-decoration: none;
+	transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+#RegisterButton a:hover {
+	background-color: #21262d;
+	border-color: #58a6ff;
+	color: #e6edf3;
+}
+
+#RegisterButton a:active {
+	transform: scale(0.97);
+	background-color: #0e1117;
+	border-color: #58a6ff;
+}
+
+#RegisterButton a:focus-visible {
+	outline: 2px solid #58a6ff;
+	outline-offset: 2px;
+}
+
+
+/* ===== Event table (dashboard) ===== */
+/* ===== Event table ===== */
+#DashboardMain {
+	max-width: 980px;
+	/* mais “dashboard” */
+	width: 92vw;
+	/* responsivo */
+}
+
+/* ===== Tabela com scroll horizontal ===== */
+.tableWrapper {
+	overflow-x: auto;
+	border: 1px solid #30363d;
+	border-radius: 6px;
+}
+
+/* deixa a tabela “larga” naturalmente */
+.eventTable {
+	width: 100%;
+	min-width: 880px;
+	/* força espaço pras colunas */
+	border-collapse: collapse;
+	font-size: 13px;
+}
+
+/* células: sem esmagar texto */
+.eventTable th,
+.eventTable td {
+	padding: 10px;
+	border-bottom: 1px solid #30363d;
+	text-align: left;
+	white-space: nowrap;
+	/* tabela “de dados” */
+}
+
+/* header */
+.eventTable th {
+	background-color: #0e1117;
+	color: #c9d1d9;
+	font-weight: 600;
+}
+
+/* último row */
+.eventTable tr:last-child td {
+	border-bottom: none;
+}
+
+/* ===== Responsive (mobile) ===== */
+@media (max-width: 600px) {
+	/* cards ocupam melhor a tela */
+	main {
+		padding: 24px;
+	}
+
+	/* formulário: vira 1 coluna */
+	.form-group {
+		grid-template-columns: 1fr;
+		gap: 6px;
+	}
+
+	.form-group label {
+		white-space: normal;
+	}
+
+	/* dashboard: tabela ocupa largura e scroll funciona */
+	#DashboardMain {
+		width: 96vw;
+	}
+
+	.tableWrapper {
+		margin: 0 -8px; /* dá respiro lateral no mobile */
+	}
+}
+
+
+
+
+
+.eventTable th:nth-child(1),
+.eventTable td:nth-child(1) {
+	width: 12%;
+}
+
+/* Event */
+.eventTable th:nth-child(2),
+.eventTable td:nth-child(2) {
+	width: 20%;
+}
+
+/* Delivery ID */
+.eventTable th:nth-child(3),
+.eventTable td:nth-child(3) {
+	width: 20%;
+}
+
+/* Repo */
+.eventTable th:nth-child(4),
+.eventTable td:nth-child(4) {
+	width: 15%;
+}
+
+/* Actor */
+.eventTable th:nth-child(5),
+.eventTable td:nth-child(5) {
+	width: 15%;
+}
+
+/* Status */
+.eventTable th:nth-child(6),
+.eventTable td:nth-child(6) {
+	width: 18%;
+}
+
+/* Received At */

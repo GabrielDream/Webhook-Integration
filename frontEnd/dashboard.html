@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="style.css">
+	<title>Dashboard — GitHub Webhook</title>
+</head>
+
+<body>
+	<main id="DashboardMain">
+		<section>
+			<h1>Dashboard</h1>
+			<p>Eventos recebidos do GitHub</p>
+
+			<h2>Backend Status</h2>
+			<p id="BackendStatus">Status: aguardando integração</p>
+		</section>
+
+		<hr>
+
+		<section>
+			<h2>Últimos eventos</h2>
+			<div class="tableWrapper">
+				<table class="eventTable">
+					<thead>
+						<tr>
+							<th>Event</th>
+							<th>Delivery ID</th>
+							<th>Repo</th>
+							<th>Actor</th>
+							<th>Status</th>
+							<th>Received At</th>
+						</tr>
+					</thead>
+					<tbody id="EventsTbody">
+						<tr>
+							<td colspan="6">Carregando eventos...</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</section>
+
+		<p id="RegisterButton">
+			<a href="index.html">Voltar para Login</a>
+		</p>
+	</main>
+
+	<script src="dashboard.js"></script>
+</body>
+
+</html>
